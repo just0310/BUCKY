@@ -132,14 +132,18 @@ function applyOutfitOverlay() {
     ov.style.display = "none";
   }
 }
+
 function updateCharacter() {
-  const avg = (hunger + clean + fun) / 3;
-  let state = "neutral";
-  if (affinity < 30) state = "grumpy";
-  else if (affinity >= 70) state = "happy";
-  else if (avg < 40) state = "sad";
-  setCharacterVisual(state);
-  applyOutfitOverlay();
+  const el = document.getElementById("character");
+  if (!el) return;
+
+  let mood = "neutral"; // 기본값
+  if (affinity < 30) mood = "grumpy";
+  else if (affinity >= 70) mood = "happy";
+
+  el.src = characterImages[mood] || characterImages.neutral;
+
+  applyOutfitOverlay(); // 옷 오버레이 그대로 유지
 }
 function setEmotion(type) {
   setCharacterVisual(type);
