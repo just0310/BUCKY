@@ -19,10 +19,10 @@ let purchasedBackgrounds = new Set(JSON.parse(localStorage.getItem("purchasedBac
 
 /* 캐릭터/오버레이 이미지 */
 const characterImages = {
-  neutral: "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
-  happy:   "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
-  sad:     "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
-  grumpy:  "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
+  neutral: "https://i.imgur.com/6A4R3Q0.jpeg",
+  happy:   "https://i.imgur.com/kMpbG7v.jpeg",
+  sad:     "https://i.imgur.com/RLf1duM.jpeg",
+  grumpy:  "https://i.imgur.com/6A4R3Q0.jpeg",
   eat:     "https://i.imgur.com/BqWvZH2.gif",
   wash:    "https://i.imgur.com/mSoIzHJ.gif"
 };
