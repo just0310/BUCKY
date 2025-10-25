@@ -23,8 +23,8 @@ const characterImages = {
   happy:   "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
   sad:     "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
   grumpy:  "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
-  eat:  "https://i.postimg.cc/sfZKjNdr/It-gets-dark-but-we-like-it-dark-Image.gif?nocache=" + Date.now(),
-  wash: "https://i.postimg.cc/QC0c41Ks/skarsgards-bill.gif?nocache=" + Date.now(),
+  eat:     "https://i.imgur.com/BqWvZH2.gif",
+  wash:    "https://i.imgur.com/mSoIzHJ.gif"
 };
 
 const outfitImages = {
@@ -219,7 +219,7 @@ function buyOutfit(item, price) {
   if (coins < price) return showToast("💸 코인이 부족해요!");
   coins -= price; outfit = item; purchasedOutfits.add(item);
   saveGame(); updateBars(); updateCharacter(); updateShopUI();
-  speak("새 옷 입으니까 기분 좋아요!"); showToast("👕 새 옷 구매 완료!");
+  speak("이게 옷이야..?"); showToast("👕 새 옷 구매 완료!");
 }
 function wearOutfit(item) { outfit = item; saveGame(); updateCharacter(); showToast(item==="none"?"옷을 벗었어요!":"착용 완료!"); }
 function buyItem(type, price) {
