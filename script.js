@@ -35,11 +35,19 @@ const outfitImages = {
 
 function setCharacterVisual(kind) {
   const el = document.getElementById("character");
-  if (!el || !characterImages[kind]) return;
-  
-  // GIF일 경우 캐시 방지 쿼리 추가
-  const isGif = characterImages[kind].endsWith(".gif");
-  el.src = isGif ? characterImages[kind] + "?t=" + Date.now() : characterImages[kind];
+  if (!el) return;
+
+  const src = characterImages[kind];
+  if (!src) return;
+
+  // GIF면 강제 새로고침 (모바일 대응)
+  if (src.endsWith(".gif")) {
+    el.src = "";
+    void el.offsetWidth; // reflow 강제
+    el.src = src + "?t=" + Date.now();
+  } else {
+    el.src = src; // 일반 이미지 (JPG, PNG)는 그대로
+  }
 }
 
 
@@ -148,14 +156,16 @@ function updateCharacter() {
   const el = document.getElementById("character");
   if (!el) return;
 
-  // 호감도 기준으로 상태 결정
   let mood = "neutral";
   if (affinity < 30) mood = "grumpy";
   else if (affinity >= 70) mood = "happy";
-  else mood = "neutral";
 
-  // 선택된 이미지 적용
-  el.src = characterImages[mood];
+  // GIF가 아니라면 (즉, 감정 이미지일 때만) 갱신
+  const currentSrc = el.src || "";
+  if (!currentSrc.endsWith(".gif")) {
+    el.src = characterImages[mood] || characterImages.neutral;
+  }
+
   applyOutfitOverlay();
 }
 
@@ -171,8 +181,9 @@ function setEmotion(type) {
   void el.offsetWidth; // 강제 리렌더링 (reflow)
   el.src = src + "?t=" + Date.now(); // 캐시 무력화 버전
 
-  // 1.6초 후 원래 표정으로 복귀
-  setTimeout(updateCharacter, 1600);
+  setTimeout(() => {
+    updateCharacter();
+  }, 1600);
 }
 
 /* 기분 클래스(시각효과만) */
