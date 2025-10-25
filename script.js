@@ -470,4 +470,3 @@ function applyBackgroundTheme(theme) {
       c.style.color = "#fff";
   }
 }
-
