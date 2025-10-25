@@ -33,6 +33,16 @@ const outfitImages = {
   none: ""
 };
 
+function setCharacterVisual(kind) {
+  const el = document.getElementById("character");
+  if (!el || !characterImages[kind]) return;
+  
+  // GIF일 경우 캐시 방지 쿼리 추가
+  const isGif = characterImages[kind].endsWith(".gif");
+  el.src = isGif ? characterImages[kind] + "?t=" + Date.now() : characterImages[kind];
+}
+
+
 /* 저장/불러오기 */
 function saveGame() {
   const data = {
@@ -56,6 +66,7 @@ function loadGame() {
   soundOn = s.soundOn ?? true;
   xp    = s.xp    ?? 0;
   level = s.level ?? 1;
+  updateCharacter();
   affinity = s.affinity ?? 0;
   playerName = s.playerName ?? "";
   currentBackground = s.currentBackground ?? "night";
@@ -137,16 +148,30 @@ function updateCharacter() {
   const el = document.getElementById("character");
   if (!el) return;
 
-  let mood = "neutral"; // 기본값
+  // 호감도 기준으로 상태 결정
+  let mood = "neutral";
   if (affinity < 30) mood = "grumpy";
   else if (affinity >= 70) mood = "happy";
+  else mood = "neutral";
 
-  el.src = characterImages[mood] || characterImages.neutral;
-
-  applyOutfitOverlay(); // 옷 오버레이 그대로 유지
+  // 선택된 이미지 적용
+  el.src = characterImages[mood];
+  applyOutfitOverlay();
 }
+
 function setEmotion(type) {
-  setCharacterVisual(type);
+  const el = document.getElementById("character");
+  if (!el) return;
+
+  const src = characterImages[type];
+  if (!src) return;
+
+  // 🧠 GIF 강제 새로고침 (Safari용)
+  el.src = "";
+  void el.offsetWidth; // 강제 리렌더링 (reflow)
+  el.src = src + "?t=" + Date.now(); // 캐시 무력화 버전
+
+  // 1.6초 후 원래 표정으로 복귀
   setTimeout(updateCharacter, 1600);
 }
 
@@ -196,11 +221,12 @@ document.getElementById("character")?.addEventListener("click", () => {
 });
 
 /* 호감도 */
-function updateAffinity(delta=0) {
+function updateAffinity(delta = 0) {
   affinity = Math.max(0, Math.min(100, affinity + delta));
-  updateBars(); updateCharacter(); saveGame();
+  updateBars();
+  updateCharacter(); // ✅ 이 줄이 꼭 필요함
+  saveGame();
 }
-
 /* 레벨업(보상: 옷 제거됨) */
 function checkLevelUp() {
   let leveled = false;
