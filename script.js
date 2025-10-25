@@ -65,7 +65,6 @@ function loadGame() {
   soundOn = s.soundOn ?? true;
   xp    = s.xp    ?? 0;
   level = s.level ?? 1;
-  updateCharacter();
   affinity = s.affinity ?? 0;
   playerName = s.playerName ?? "";
   currentBackground = s.currentBackground ?? "night";
@@ -151,9 +150,11 @@ function updateCharacter() {
   if (affinity < 30) mood = "grumpy";
   else if (affinity >= 70) mood = "happy";
 
-  // GIF가 아니라면 (즉, 감정 이미지일 때만) 갱신
-  const currentSrc = el.src || "";
-  if (!currentSrc.endsWith(".gif")) {
+  // 확장자만 추출해서 비교 (Safari 대응)
+  const srcLower = (el.src || "").toLowerCase();
+  const isGif = srcLower.includes(".gif");
+
+  if (!isGif) {
     el.src = characterImages[mood] || characterImages.neutral;
   }
 
@@ -502,3 +503,6 @@ function applyBackgroundTheme(theme) {
       c.style.color = "#fff";
   }
 }
+
+updateBars(); 
+updateCharacter();
