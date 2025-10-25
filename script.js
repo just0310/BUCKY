@@ -23,8 +23,8 @@ const characterImages = {
   happy:   "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
   sad:     "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
   grumpy:  "https://i.postimg.cc/RC2Cmh5V/Character.jpg",
-  eat:     "https://i.postimg.cc/sfZKjNdr/It-gets-dark-but-we-like-it-dark-Image.gif",
-  wash:    "https://i.postimg.cc/QC0c41Ks/skarsgards-bill.gif"
+  eat:  "https://i.postimg.cc/sfZKjNdr/It-gets-dark-but-we-like-it-dark-Image.gif?nocache=" + Date.now(),
+  wash: "https://i.postimg.cc/QC0c41Ks/skarsgards-bill.gif?nocache=" + Date.now(),
 };
 
 const outfitImages = {
