@@ -372,6 +372,5 @@ body.night { background: linear-gradient(to bottom, #2b1055, #7597de); }
 
 .game-container.bg-night .level-bar-container::before,
 .game-container.dark-theme .level-bar-container::before {
-  color: #efefef;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-}
+  color: #efefef; /* 밝은 노랑 (가시성 좋음) */
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.5); /* 살짝 빛나는 효과 */

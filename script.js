@@ -13,15 +13,17 @@ let currentBackground = "night";
 let saveInterval, statusInterval, coinInterval;
 let speechTimeout;
 
+// ✅ 추가: 감정(GIF) 재생 상태
+let isEmoting = false;
+let emotionTimer = null;
+
 let purchasedOutfits = new Set(JSON.parse(localStorage.getItem("purchasedOutfits") || "[]"));
 let purchasedBackgrounds = new Set(JSON.parse(localStorage.getItem("purchasedBackgrounds") || "[]"));
 
-
 /* 캐릭터/오버레이 이미지 */
 const characterImages = {
-  neutral: "https://i.imgur.com/6A4R3Q0.jpeg",
   happy:   "https://i.imgur.com/kMpbG7v.jpeg",
-  sad:     "https://i.imgur.com/RLf1duM.jpeg",
+  sad:  "https://i.imgur.com/RLf1duM.jpeg",
   grumpy:  "https://i.imgur.com/6A4R3Q0.jpeg",
   eat:     "https://i.imgur.com/BqWvZH2.gif",
   wash:    "https://i.imgur.com/mSoIzHJ.gif"
@@ -33,14 +35,29 @@ const outfitImages = {
   none: ""
 };
 
-function setCharacterVisual(kind) {
+/* ✅ 공통: 이미지 교체(모바일/Safari GIF 재생 보장) */
+function setCharacterVisual(kind, force = false) {
   const el = document.getElementById("character");
-  if (el && el.tagName.toLowerCase() === "img") {
-    const src = characterImages[kind] || characterImages.neutral;
+  if (!el) return;
+
+  const src = characterImages[kind];
+  if (!src) return;
+
+  const isGif = src.toLowerCase().includes(".gif");
+  const current = (el.src || "").split("?")[0];
+
+  // 같은 정지 이미지면 스킵 (불필요한 리렌더 방지)
+  if (!force && !isGif && current === src) return;
+
+  if (isGif) {
+    // GIF는 캐시 무력화로 매번 새로 재생
+    el.src = "";
+    void el.offsetWidth; // reflow
+    el.src = src + "?t=" + Date.now();
+  } else {
     el.src = src;
   }
 }
-
 
 /* 저장/불러오기 */
 function saveGame() {
@@ -121,14 +138,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove("show"), 1800);
 }
 
-/* 캐릭터 표정/오버레이 */
-function setCharacterVisual(kind) {
-  const el = document.getElementById("character");
-  if (el && el.tagName.toLowerCase() === "img") {
-    const src = characterImages[kind] || characterImages.neutral;
-    el.src = src;
-  }
-}
 function applyOutfitOverlay() {
   const ov = document.getElementById("outfit-overlay");
   if (!ov) return;
@@ -142,40 +151,42 @@ function applyOutfitOverlay() {
   }
 }
 
-function updateCharacter() {
+/* ✅ 호감도 상태 이미지 반영 (감정 재생 중이면 건너뜀) */
+function updateCharacter(force = false) {
   const el = document.getElementById("character");
   if (!el) return;
+
+  // 감정 GIF 재생 중에는 상태 이미지로 덮어쓰지 않음
+  if (isEmoting && !force) return;
 
   let mood = "neutral";
   if (affinity < 30) mood = "grumpy";
   else if (affinity >= 70) mood = "happy";
 
-  // 확장자만 추출해서 비교 (Safari 대응)
-  const srcLower = (el.src || "").toLowerCase();
-  const isGif = srcLower.includes(".gif");
-
-  if (!isGif) {
-    el.src = characterImages[mood] || characterImages.neutral;
-  }
-
+  setCharacterVisual(mood, true);
   applyOutfitOverlay();
 }
 
+/* ✅ 감정(GIF) 재생 → 1.8초 뒤 상태 이미지로 복귀 */
 function setEmotion(type) {
   const el = document.getElementById("character");
   if (!el) return;
 
-  const src = characterImages[type];
-  if (!src) return;
+  // 기존 타이머 정리
+  if (emotionTimer) {
+    clearTimeout(emotionTimer);
+    emotionTimer = null;
+  }
 
-  // 🧠 GIF 강제 새로고침 (Safari용)
-  el.src = "";
-  void el.offsetWidth; // 강제 리렌더링 (reflow)
-  el.src = src + "?t=" + Date.now(); // 캐시 무력화 버전
+  isEmoting = true;
+  setCharacterVisual(type, true); // GIF 즉시 재생
 
-  setTimeout(() => {
-    updateCharacter();
-  }, 1600);
+  // 1.8초 후 감정 종료 → 상태 이미지 표시
+  emotionTimer = setTimeout(() => {
+    isEmoting = false;
+    updateCharacter(true); // 기존 유지
+    applyOutfitOverlay();
+  }, 1800);
 }
 
 /* 기분 클래스(시각효과만) */
@@ -197,7 +208,8 @@ function feed() {
   coins++; xp += 10; updateAffinity(+0.5);
   const msgList = ["...이게 뭔데", "...고마워", "먹을만 해"];
   speak(msgList[Math.floor(Math.random()*msgList.length)]);
-  playSound("eat-sound"); setEmotion("eat");
+  playSound("eat-sound");
+  setEmotion("eat"); // ← GIF 재생
   updateBars(); saveGame();
 }
 function wash() {
@@ -206,14 +218,15 @@ function wash() {
   coins++; xp += 10; updateAffinity(+0.5);
   const msgList = ["내가 할수 있어...", "보지마..", "내가 더러워..?"];
   speak(msgList[Math.floor(Math.random()*msgList.length)]);
-  playSound("click-sound"); setEmotion("wash");
+  playSound("click-sound");
+  setEmotion("wash"); // ← GIF 재생
   updateBars(); saveGame();
 }
 
 /* 캐릭터 클릭 대화 */
 document.getElementById("character")?.addEventListener("click", () => {
   const cuteTalk = [`...${playerName}`, "응..?", "뭐해..?"];
-  const neutralTalk = ["...?", "하지마...", "너 이름이 뭐라고,,?"];
+  const neutralTalk = ["...?", "하지마...", "너 이름이 뭐라고..?"];
   const grumpyTalk = ["...죽인다", "손대지 마.", "너 누군데"];
   const messages = affinity < 30 ? grumpyTalk : affinity >= 70 ? cuteTalk : neutralTalk;
 
@@ -223,13 +236,14 @@ document.getElementById("character")?.addEventListener("click", () => {
   updateBars(); saveGame();
 });
 
-/* 호감도 */
+/* ✅ 호감도 변경 시 즉시 상태 이미지 반영 (감정 중이면 감정 끝나고 반영) */
 function updateAffinity(delta = 0) {
   affinity = Math.max(0, Math.min(100, affinity + delta));
   updateBars();
-  updateCharacter(); // ✅ 이 줄이 꼭 필요함
+  if (!isEmoting) updateCharacter(true); // 감정 중이 아니면 즉시
   saveGame();
 }
+
 /* 레벨업(보상: 옷 제거됨) */
 function checkLevelUp() {
   let leveled = false;
@@ -263,9 +277,7 @@ function buyItem(type, price) {
   saveGame(); updateBars(); showToast("🛒 아이템 구매 완료!");
 }
 
-
 function updateShopUI() {
-  // 옷 부분 기존 코드 유지
   ["hat", "bow"].forEach(item => {
     const el = document.getElementById(`${item}-item`);
     if (!el) return;
@@ -277,28 +289,20 @@ function updateShopUI() {
       el.textContent = (item === "hat" ? "🧢 모자 - 10코인" : "🎀 리본 - 15코인");
     }
   });
-  
 
-
-/* 내부 배경(상점 전용) */
-function applyBackgroundTheme(theme) {
-  const c = document.querySelector(".game-container");
-
-  // ① 인라인 background 먼저 제거 (이게 핵심!)
-  c.style.background = "";
-
-  // ② 기존 테마 클래스 제거
-  c.classList.remove("bg-morning","bg-day","bg-evening","bg-night");
-
-  // ③ 새 테마 클래스 적용
-  switch (theme) {
-    case "morning": c.classList.add("bg-morning"); break;
-    case "day":     c.classList.add("bg-day");     break;
-    case "evening": c.classList.add("bg-evening"); break;
-    case "night":   c.classList.add("bg-night");   break;
-    default:        c.classList.add("bg-day");     // 기본값은 day로
+  /* 내부 배경(상점 전용) */
+  function applyBackgroundThemeInShop(theme) {
+    const c = document.querySelector(".game-container");
+    c.style.background = "";
+    c.classList.remove("bg-morning","bg-day","bg-evening","bg-night");
+    switch (theme) {
+      case "morning": c.classList.add("bg-morning"); break;
+      case "day":     c.classList.add("bg-day");     break;
+      case "evening": c.classList.add("bg-evening"); break;
+      case "night":   c.classList.add("bg-night");   break;
+      default:        c.classList.add("bg-day");
+    }
   }
-}
 
   ["morning", "day", "evening", "night"].forEach(bg => {
     const el = document.querySelector(`#bg-shop .item[onclick*="${bg}"]`);
@@ -314,14 +318,11 @@ function applyBackgroundTheme(theme) {
   });
 }
 
-
 function themeName(theme){
   switch(theme){ case "morning": return "아침"; case "day": return "낮"; case "evening": return "저녁"; case "night": return "밤"; default: return "기본"; }
 }
 
-
 function buyBackground(theme, price = 30) {
-  // 이미 구매한 배경이면 바로 적용
   if (purchasedBackgrounds.has(theme)) {
     currentBackground = theme;
     applyBackgroundTheme(theme);
@@ -330,14 +331,10 @@ function buyBackground(theme, price = 30) {
     updateShopUI();
     return;
   }
-
-  // 코인 부족 체크
   if (coins < price) {
     showToast("💸 코인이 부족해요!");
     return;
   }
-
-  // 구매 및 적용
   coins -= price;
   purchasedBackgrounds.add(theme);
   currentBackground = theme;
@@ -365,12 +362,10 @@ function confirmReset() {
   clearInterval(statusInterval);
   clearInterval(coinInterval);
 
-  // 💾 저장 데이터 삭제
   localStorage.removeItem("petGameState");
   localStorage.removeItem("purchasedOutfits");
-  localStorage.removeItem("purchasedBackgrounds"); // ✅ 배경 데이터도 삭제
+  localStorage.removeItem("purchasedBackgrounds");
 
-  // 💬 모든 변수 초기화
   hunger = 100;
   clean = 100;
   fun = 100;
@@ -385,13 +380,12 @@ function confirmReset() {
   affinity = 0;
   currentBackground = "night";
 
-  // ✅ 세트도 초기화 (중요)
   purchasedOutfits.clear();
   purchasedBackgrounds.clear();
 
   applyBackgroundTheme(currentBackground);
   updateBars();
-  updateCharacter();
+  updateCharacter(true);
   showToast("🔄 데이터가 초기화되었습니다!");
 
   document.getElementById("confirm-modal").style.display = "none";
@@ -401,7 +395,6 @@ function confirmReset() {
     document.getElementById("name-modal").style.display = "flex";
   }, 400);
 
-  // 루프 재시작
   statusInterval = setInterval(decreaseStatus, 1500);
   coinInterval = setInterval(() => {
     coins++;
@@ -410,7 +403,6 @@ function confirmReset() {
   }, 30000);
   saveInterval = setInterval(saveGame, 3000);
 }
-
 
 function cancelReset(){ document.getElementById("confirm-modal").style.display="none"; }
 
@@ -452,7 +444,6 @@ function playRoulette(){
   setTimeout(()=>{
     const deg = spin % 360;
     let result;
-    // 0~60: lose, 60~240: neutral, 240~360: double (가시적 단순화)
     if (deg>=0 && deg<60) result="lose";
     else if (deg>=60 && deg<240) result="neutral";
     else result="double";
@@ -466,7 +457,8 @@ function playRoulette(){
 /* 실행 */
 loadGame();
 applyBackgroundTheme(currentBackground);
-updateBars(); updateCharacter();
+updateBars();
+updateCharacter(true);
 
 statusInterval = setInterval(decreaseStatus, 1500);
 coinInterval   = setInterval(()=>{ coins++; updateBars(); saveGame(); }, 30000);
@@ -477,32 +469,29 @@ document.getElementById("sound-status").innerText = soundOn ? "켜짐" : "꺼짐
 const bgm = document.getElementById("bgm"); if (bgm && soundOn) bgm.play().catch(()=>{});
 setTimeout(askName, 0);
 
+/* 배경 테마 적용 */
 function applyBackgroundTheme(theme) {
   const c = document.querySelector(".game-container");
-
-  // 모든 배경 클래스 제거
   c.classList.remove("bg-morning", "bg-day", "bg-evening", "bg-night", "dark-theme");
-
-  // 이미지 덮어쓰기 방지
-  c.style.background = ""; 
-
-  // 각 테마 적용
+  c.style.background = "";
   switch (theme) {
-    case "morning":
-      c.classList.add("bg-morning");
-      break;
-    case "day":
-      c.classList.add("bg-day");
-      break;
-    case "evening":
-      c.classList.add("bg-evening");
-      break;
+    case "morning": c.classList.add("bg-morning"); break;
+    case "day":     c.classList.add("bg-day");     break;
+    case "evening": c.classList.add("bg-evening"); break;
     case "night":
       c.classList.add("bg-night");
       c.style.background = "#000";
       c.style.color = "#fff";
+      break;
   }
 }
 
-updateBars(); 
-updateCharacter();
+loadGame();
+applyBackgroundTheme(currentBackground);
+updateBars();
+updateCharacter(true);
+
+// ✅ 로드 후 호감도 상태 다시 반영
+if (affinity !== 0) {
+  updateAffinity(0);
+}
