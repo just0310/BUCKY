@@ -1,0 +1,132 @@
+<div class="game-container">
+  <!-- 상단 정보 -->
+  <div class="top-info">
+    <div class="left-bars">
+      <div class="level-bar-container">
+        <div id="level-bar" class="level-bar"></div>
+      </div>
+
+      <div class="bars-small">
+        <div class="status"><div class="bar-container small"><div id="hunger-bar" class="bar hunger"></div></div></div>
+        <div class="status"><div class="bar-container small"><div id="clean-bar" class="bar clean"></div></div></div>
+        <div class="status"><div class="bar-container small"><div id="fun-bar" class="bar fun"></div></div></div>
+      </div>
+
+      <div class="coins">💰 <span id="coins">0</span></div>
+    </div>
+
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
+  </div>
+
+  <!-- 호감도 게이지 -->
+  <div class="affinity-container">
+    <div class="affinity-label">❤️ 호감도</div>
+    <div class="affinity-bar-bg">
+      <div id="affinity-bar" class="affinity-bar"></div>
+    </div>
+    <div id="affinity-text" class="affinity-text">😐 무덤덤한 상태</div>
+  </div>
+
+  <!-- 캐릭터 -->
+  <div class="character-wrapper">
+    <div class="speech" id="speech">안녕!</div>
+    <img id="character" class="character" src="https://cdn-icons-png.flaticon.com/512/616/616408.png" alt="pet">
+  </div>
+
+<!-- 행동 버튼 -->
+<div class="actions"> <div class="action-item"> <button onclick="feed()">🍑</button> <span class="count-badge" id="food-badge">10</span> </div> <div class="action-item"> <button onclick="wash()">🧼</button> <span class="count-badge" id="soap-badge">10</span> </div> <div class="action-item"> <button onclick="openRoulette()">🎡</button> </div> <div class="action-item"><button onclick="openShop()">🛍️</button></div> </div> </div>
+
+<!-- 알림창 -->
+<div id="toast"></div>
+
+<!-- 이름 입력 -->
+<div id="name-modal" class="modal">
+  <div class="modal-content">
+    <h2>이름을 입력하세요</h2>
+    <input type="text" id="player-name-input" placeholder="이름">
+    <button onclick="saveName()">시작!</button>
+  </div>
+</div>
+
+<!-- 상점 -->
+<div id="shop-modal" class="modal">
+  <div class="modal-content">
+    <h2>🛍️ 상점</h2>
+
+    <!-- 탭 버튼 -->
+    <div class="tabs">
+      <button class="tab active" id="tab-outfit" onclick="showTab('outfit')">👕 옷</button>
+      <button class="tab" id="tab-item" onclick="showTab('item')">🍑 소모품</button>
+      <button class="tab" id="tab-bg"   onclick="showTab('bg')">🌄 배경</button>
+    </div>
+
+    <!-- 탭 내용: 옷 -->
+    <div id="outfit-shop" class="shop-tab">
+      <div class="item" onclick="buyOutfit('hat', 10)">🧢 모자 - 10코인</div>
+      <div class="item" onclick="buyOutfit('bow', 15)">🎀 리본 - 15코인</div>
+      <div class="item" onclick="buyOutfit('none', 0)">🚫 벗기</div>
+    </div>
+
+    <!-- 탭 내용: 소모품 -->
+    <div id="item-shop" class="shop-tab" style="display:none;">
+      <div class="item" onclick="buyItem('food', 5)">🍑 음식 - 5코인</div>
+      <div class="item" onclick="buyItem('soap', 5)">🧼 비누 - 5코인</div>
+    </div>
+
+<!-- 탭 내용: 배경 -->
+<div id="bg-shop" class="shop-tab" style="display:none;">
+  <div class="item" onclick="buyBackground('morning', 30)">🌅 아침 배경 - 30코인</div>
+  <div class="item" onclick="buyBackground('day', 30)">🌞 낮 배경 - 30코인</div>
+  <div class="item" onclick="buyBackground('evening', 30)">🌇 저녁 배경 - 30코인</div>
+  <div class="item" onclick="buyBackground('night', 30)">🌙 밤 배경 - 30코인</div>
+</div>
+
+    <button onclick="closeShop()">닫기</button>
+  </div>
+</div>
+
+<!-- 설정 -->
+<div id="settings-modal" class="modal">
+  <div class="modal-content">
+    <h2>⚙️ 설정</h2>
+    <button onclick="toggleSound()">🔊 소리: <span id="sound-status">켜짐</span></button>
+    <button onclick="resetData()">🧠 브레인 워싱</button>
+    <button onclick="closeSettings()">닫기</button>
+  </div>
+</div>
+
+<!-- 초기화 확인창 -->
+<div id="confirm-modal" class="modal">
+  <div class="modal-content">
+    <h2>브레인 워싱</h2>
+    <p>정말 모든 기억을 삭제할까요?<br>되돌릴 수 없습니다. (어쩌면 가능할지도...)</p>
+    <button onclick="confirmReset()">예</button>
+    <button onclick="cancelReset()">아니오</button>
+  </div>
+</div>
+
+<!-- 룰렛 -->
+<div id="roulette-modal" class="modal">
+  <div class="modal-content">
+    <h2>🎡 룰렛 게임</h2>
+    <div class="roulette" id="roulette-wheel">
+      <div class="slice" style="transform: rotate(0deg);"></div>
+      <div class="slice" style="transform: rotate(60deg);"></div>
+      <div class="slice" style="transform: rotate(120deg);"></div>
+      <div class="slice" style="transform: rotate(180deg);"></div>
+      <div class="slice" style="transform: rotate(240deg);"></div>
+      <div class="slice" style="transform: rotate(300deg);"></div>
+      <div class="pointer"></div>
+    </div>
+    <p>50코인을 걸고 돌리기!</p>
+    <button onclick="playRoulette()">▶ 돌리기</button>
+    <button onclick="closeRoulette()">닫기</button>
+  </div>
+</div>
+
+<!-- 배경음 & 효과음 -->
+<audio id="bgm" loop src="https://cdn.pixabay.com/audio/2023/03/01/audio_4d87e03e5f.mp3"></audio>
+<audio id="click-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_4b169a80c3.mp3"></audio>
+<audio id="eat-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_ef0f9c7a12.mp3"></audio>
+
+

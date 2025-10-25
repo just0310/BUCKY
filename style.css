@@ -1,0 +1,378 @@
+* { box-sizing: border-box; }
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  transition: background 1s ease;
+}
+
+
+/* 🌄 시간대별 배경 */
+body.morning { background: linear-gradient(to bottom, #ffdf9e, #fff4e0); }
+body.day { background: linear-gradient(to bottom, #b2e0ff, #e5f6ff); }
+body.evening { background: linear-gradient(to bottom, #fbb6a7, #fcdab7); }
+body.night { background: linear-gradient(to bottom, #2b1055, #7597de); }
+
+/* ✅ 배경 이미지 버전 */
+.game-container.bg-morning {
+  background: url("https://i.postimg.cc/XN8hSP92/seukeulinsyas-2025-10-25-235438.png") center/cover no-repeat;
+}
+
+.game-container.bg-day {
+  background: url("https://images.unsplash.com/photo-156744038136-46273834b3fb") center/cover no-repeat;
+}
+
+.game-container.bg-evening {
+  background: url("https://images.unsplash.com/photo-150534623283-312aade485b7") center/cover no-repeat;
+}
+
+.game-container.bg-night {
+  background: url("https://i.postimg.cc/QdcDGbSx/image.png") center/cover no-repeat;
+}
+
+
+/* 말풍선 배경 밝게 보정 */
+.game-container.bg-night .speech {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 버튼(상점/설정) 글씨도 밝게 */
+.game-container.bg-night button {
+  color: #fff;
+}
+
+/* 게임 컨테이너 */
+.game-container {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  width: 340px;
+  height: 640px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  position: relative;
+}
+
+/* 상단 */
+.top-info {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+.left-bars { margin-left: 10px; text-align: left; }
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* 레벨바 & 게이지 */
+.level-bar-container {
+  background: #eee;
+  width: 130px;
+  height: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.level-bar {
+  background: linear-gradient(90deg, #4ecdc4, #ffe66d);
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.level-bar-container::before {
+  content: attr(data-level);
+  position: absolute;
+  top: -22px;
+  left: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #444;
+}
+
+.bars-small .bar-container.small {
+  width: 90px;
+  height: 8px;
+  margin-bottom: 4px;
+  background: #eee;
+  border-radius: 4px;
+}
+.bar { height: 100%; transition: width 0.3s; }
+.hunger { background: #d5c585; }
+.clean { background: #a2ebc8; }
+.fun { background: #da8680; }
+
+.coins { font-size: 14px; color: #b7b7b7; margin-top: 4px; }
+
+/* 캐릭터 */
+.character-wrapper {
+  position: relative;       /* 오버레이 기준 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex ; /* ✅ 중앙 대신 위쪽으로 */
+  align-items: center;
+  flex-grow: 1;
+  margin-top: 20px;         /* 🔹 살짝 위로 당김 */
+  padding-top: 20px;         /* 🔹 말풍선 간격용 */
+}
+
+.character {
+  width: 180px;              /* 🔹 필요 시 크기 조절 */
+  height: auto;
+  display: block;
+  z-index: 2;
+}
+
+.character img {
+  width: 100%;  
+  height: auto;
+  object-fit: contain;
+}
+
+.actions img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  transition: transform 0.2s;
+}
+.actions button:hover img {
+  transform: scale(1.1);
+}
+.settings-btn img {
+  width: 22px;
+  height: 22px;
+  vertical-align: middle;
+}
+.coins img {
+  width: 14px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+.affinity-label img {
+  width: 14px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.speech {
+  background: #000;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 15px;
+  margin-bottom: 10px;
+  opacity: 1;
+  transition: opacity 0.5s;
+  position: relative;
+  top: -10px; /* 🔹 살짝 위로 */
+}
+
+.speech.hidden { opacity: 0; }
+
+#outfit-overlay {
+  position: absolute;
+  top: 15px;                 /* 🔹 머리 쪽으로 이동 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* 행동 버튼 */
+.actions {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-bottom: 20px;
+}
+.actions button {
+  background: none;
+  border: none;
+  font-size: 48px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.actions button:hover { transform: scale(1.1); }
+.action-item { position: relative; }
+.count-badge {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  background: #ffd93d;
+  border-radius: 50%;
+  padding: 1px 5px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 알림창 */
+#toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.5s;
+  pointer-events: none;
+  z-index: 9999;
+}
+#toast.show { opacity: 0.9; }
+
+/* 모달 */
+.modal {
+  display: none;
+  z-index: 100;
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+  border-radius: 20px;
+  backdrop-filter: blur(3px);
+  z-index: 100;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  width: 260px;
+  text-align: center;
+  box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+.modal-content h2 { margin-top: 0; }
+
+/* 상점 탭 */
+.item {
+  cursor: pointer;
+  padding: 6px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+.item:hover { background: #f7f7f7; }
+
+.tabs { display: flex; justify-content: space-around; margin-bottom: 10px; }
+.tab {
+  flex: 1; padding: 5px; border: none;
+  background: #eee; cursor: pointer; border-radius: 8px;
+}
+.tab.active { background: #ffd93d; font-weight: bold; }
+
+/* === Shop Tabs: one row, equal width, no overflow === */
+#shop-modal .modal-content {
+  background: #fff;  /* 살짝 어두운 배경 */
+  color: #000;       /* ✅ 폰트 흰색으로 */
+}
+
+#shop-modal .tabs {
+  display: flex;
+  width: 100%;
+  gap: 6px;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;             /* 가로 넘침 방지 */
+}
+#shop-modal .tab {
+  flex: 1 1 0;
+  min-width: 0;                 /* flex 아이템 수축 허용 */
+  padding: 6px 0;
+  border: none;
+  color: #000;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;          /* 줄바꿈 금지 (가로 늘어남 방지) */
+}
+#shop-modal .tab.active {
+  background: #b7b7b7;
+  color: #000;
+  box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+#shop-modal .shop-tab .item {
+  margin: 6px 0;
+}
+
+
+/* 룰렛 */
+.roulette {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  position: relative;
+  margin: 10px auto;
+  overflow: hidden;
+
+  background: url("https://i.postimg.cc/fWcCSqCC/image.png") center/cover no-repeat;
+  border: none; 
+}
+
+.slice, .slice:nth-child(even) {
+  display: none; 
+}
+
+
+.pointer {
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid #ff7043;
+  position: absolute;
+  top: -15px; left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 호감도 게이지 */
+.affinity-container {
+  width: 130px;
+  text-align: left;
+  margin-top: 8px;
+}
+.affinity-label { font-size: 13px; font-weight: bold; color: #ff5c8d; margin-bottom: 3px; }
+.affinity-bar-bg {
+  background: #eee;
+  border-radius: 4px;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+}
+.affinity-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.3s;
+  background: linear-gradient(90deg, #ff99bb, #ff5c8d);
+}
+.affinity-text {
+  font-size: 12px;
+  color: #555;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.game-container.bg-night .level-bar-container::before,
+.game-container.dark-theme .level-bar-container::before {
+  color: #efefef; /* 밝은 노랑 (가시성 좋음) */
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.5); /* 살짝 빛나는 효과 */
+
+  
