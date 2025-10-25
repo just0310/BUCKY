@@ -35,18 +35,9 @@ const outfitImages = {
 
 function setCharacterVisual(kind) {
   const el = document.getElementById("character");
-  if (!el) return;
-
-  const src = characterImages[kind];
-  if (!src) return;
-
-  // GIF면 강제 새로고침 (모바일 대응)
-  if (src.endsWith(".gif")) {
-    el.src = "";
-    void el.offsetWidth; // reflow 강제
-    el.src = src + "?t=" + Date.now();
-  } else {
-    el.src = src; // 일반 이미지 (JPG, PNG)는 그대로
+  if (el && el.tagName.toLowerCase() === "img") {
+    const src = characterImages[kind] || characterImages.neutral;
+    el.src = src;
   }
 }
 
