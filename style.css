@@ -213,7 +213,7 @@ body.night { background: linear-gradient(to bottom, #2b1055, #7597de); }
   position: absolute;
   right: 1px;
   bottom: -6px;
-  background: #872e2e;
+  background: #fff;
   border-radius: 50%;
   padding: 1px 5px;
   font-size: 12px;
