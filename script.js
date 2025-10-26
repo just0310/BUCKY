@@ -225,8 +225,8 @@ function wash() {
 
 /* 캐릭터 클릭 대화 */
 document.getElementById("character")?.addEventListener("click", () => {
-  const cuteTalk = [`...${playerName}`, "응..?", "뭐해..?"];
-  const neutralTalk = ["...?", "하지마...", "너 이름이 뭐라고..?"];
+  const cuteTalk = [`...${playerName}`, "응..?할말있어?", "뭐해..?"];
+  const neutralTalk = ["넌 다른 핸들러들과는 다른 것 같아..","왜..", "너 이름이 뭐라고..?"];
   const grumpyTalk = ["...죽인다", "손대지 마.", "너 누군데"];
   const messages = affinity < 30 ? grumpyTalk : affinity >= 70 ? cuteTalk : neutralTalk;
 
@@ -319,7 +319,7 @@ function updateShopUI() {
 }
 
 function themeName(theme){
-  switch(theme){ case "morning": return "아침"; case "day": return "낮"; case "evening": return "저녁"; case "night": return "밤"; default: return "기본"; }
+  switch(theme){ case "morning": return "설산"; case "day": return "연구실"; case "evening": return "훈련실"; case "night": return "검은"; default: return "기본"; }
 }
 
 function buyBackground(theme, price = 30) {
@@ -475,9 +475,20 @@ function applyBackgroundTheme(theme) {
   c.classList.remove("bg-morning", "bg-day", "bg-evening", "bg-night", "dark-theme");
   c.style.background = "";
   switch (theme) {
-    case "morning": c.classList.add("bg-morning"); break;
-    case "day":     c.classList.add("bg-day");     break;
-    case "evening": c.classList.add("bg-evening"); break;
+    case "morning":
+      c.classList.add("bg-morning"); 
+      break;
+      
+    case "day":     
+      c.classList.add("bg-day");
+      c.style.color = "#fff"
+      break;
+      
+    case "evening": 
+      c.classList.add("bg-evening"); 
+      c.style.color = "#fff"
+      break;
+      
     case "night":
       c.classList.add("bg-night");
       c.style.background = "#000";
