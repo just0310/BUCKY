@@ -3,6 +3,17 @@
 
   <head>
     <meta charset="UTF-8">
+    <title>ㅀㅇㅀㄹㅀ</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
     <title>Untitled</title>
     <link rel="stylesheet" href="./style.css">
 
@@ -54,7 +65,8 @@
     <div class="actions">
       <div class="action-item"><button onclick="feed()">🍑</button><span class="count-badge" id="food-badge">10</span></div>
       <div class="action-item"><button onclick="wash()">🧼</button><span class="count-badge" id="soap-badge">10</span></div>
-      <div class="action-item"><button onclick="openRoulette()">🎡</button></div>
+      <div class="action-item"><button onclick="brush()">🪮</button></div>
+      <div class="action-item"><button onclick="openGameHub()">🎮</button></div>
       <div class="action-item"><button onclick="openShop()">🛍️</button></div>
     </div>
   </div>
@@ -82,8 +94,7 @@
       </div>
 
       <div id="outfit-shop" class="shop-tab">
-        <div class="item" onclick="buyOutfit('hat', 10)">🧢 모자 - 10코인</div>
-        <div class="item" onclick="buyOutfit('bow', 15)">🎀 리본 - 15코인</div>
+        <div class="item" onclick="buyOutfit('hat', 0)">업데이트 중</div>
         <div class="item" onclick="buyOutfit('none', 0)">🚫 벗기</div>
       </div>
 
@@ -122,7 +133,29 @@
       <button onclick="cancelReset()">아니오</button>
     </div>
   </div>
-
+  
+  <!-- 🎮 게임 허브 -->
+<div id="gamehub-modal" class="modal">
+  <div class="modal-content">
+    <h2>🎮 게임 선택</h2>
+    <div class="game-buttons">
+      <button onclick="openRoulette()">🎡 룰렛</button>
+      <button onclick="openMiniGame()">🏃 장애물 피하기</button>
+    </div>
+    <button onclick="closeGameHub()">닫기</button>
+  </div>
+</div>
+  
+  <!-- 🏃 장애물 피하기 -->
+<div id="minigame-modal" class="modal">
+  <div class="modal-content" style="width:300px; height:400px; padding:0;">
+    <canvas id="minigame-canvas" width="300" height="400"></canvas>
+    <div style="padding:10px;">
+      <button onclick="closeMiniGame()">나가기</button>
+    </div>
+  </div>
+</div>
+  
   <!-- 룰렛 -->
   <div id="roulette-modal" class="modal">
     <div class="modal-content">
@@ -143,6 +176,11 @@
 
   <script src="script.js"></script>
 </body>
+</html>
+    <script  src="./script.js"></script>
+
+  </body>
+  
 </html>
     <script  src="./script.js"></script>
 

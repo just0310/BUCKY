@@ -22,11 +22,12 @@ let purchasedBackgrounds = new Set(JSON.parse(localStorage.getItem("purchasedBac
 
 /* 캐릭터/오버레이 이미지 */
 const characterImages = {
-  happy:   "https://i.imgur.com/kMpbG7v.jpeg",
+  happy:  "https://i.imgur.com/kMpbG7v.jpeg",
   sad:  "https://i.imgur.com/RLf1duM.jpeg",
   grumpy:  "https://i.imgur.com/6A4R3Q0.jpeg",
-  eat:     "https://i.imgur.com/BqWvZH2.gif",
-  wash:    "https://i.imgur.com/mSoIzHJ.gif"
+  eat:  "https://i.imgur.com/BqWvZH2.gif",
+  wash:  "https://i.imgur.com/mSoIzHJ.gif",
+  brush:  "https://i.imgur.com/uma3T80.gif"
 };
 
 const outfitImages = {
@@ -223,6 +224,47 @@ function wash() {
   updateBars(); saveGame();
 }
 
+let lastBrushTime = 0; // ⏰ 마지막 빗질 시각 저장용 (전역 변수)
+
+function brush() {
+  const now = Date.now();
+  const cooldown = 60 * 1000; // 1분(60초)
+  
+  // 아직 1분이 안 지났으면 대기 메시지 출력
+  if (now - lastBrushTime < cooldown) {
+    const remain = Math.ceil((cooldown - (now - lastBrushTime)) / 1000);
+    showToast(`⏳ 아직 ${remain}초 남았어요!`);
+    speak("당분간 다가오지마..");
+    return;
+  }
+
+  // ✅ 1분 지났으면 실행
+  lastBrushTime = now;
+
+  clean = Math.min(100, clean + 10);
+  fun = Math.min(100, fun + 15);
+  coins += 2; xp += 8;
+  updateAffinity(+0.3);
+
+  const msgList = [
+    "너무 세게 하지 마...",
+    "뭐하는거야..?",
+    "이런 건 익숙하지 않은데..."
+  ];
+  speak(msgList[Math.floor(Math.random() * msgList.length)]);
+  playSound("click-sound");
+
+  // 빗질 애니메이션
+  if (characterImages.brush) setEmotion("brush");
+  else setEmotion("wash");
+
+  updateBars();
+  saveGame();
+}
+
+
+
+
 /* 캐릭터 클릭 대화 */
 document.getElementById("character")?.addEventListener("click", () => {
   const cuteTalk = [`...${playerName}`, "응..?할말있어?", "뭐해..?"];
@@ -244,7 +286,115 @@ function updateAffinity(delta = 0) {
   saveGame();
 }
 
-/* 레벨업(보상: 옷 제거됨) */
+/* 게임 */
+function openGameHub() {
+  document.getElementById("gamehub-modal").style.display = "flex";
+}
+function closeGameHub() {
+  document.getElementById("gamehub-modal").style.display = "none";
+}
+
+function openMiniGame() {
+  const modal = document.getElementById("minigame-modal");
+  modal.style.display = "flex";
+  showToast('업데이트 중');
+}
+
+function closeMiniGame() {
+  const modal = document.getElementById("minigame-modal");
+  modal.style.display = "none";
+  miniGameRunning = false;
+}
+
+function startMiniGame() {
+  const canvas = document.getElementById("minigame-canvas");
+  const ctx = canvas.getContext("2d");
+  miniGameRunning = true;
+  miniGameScore = 0;
+
+  player = { x: 40, y: 320, w: 30, h: 30, color: "#3b82f6" };
+  obstacles = [];
+  gravity = 0.6;
+  jumpPower = -10;
+  yVelocity = 0;
+
+  // 점프 입력 (키보드 + 터치)
+  const jump = () => {
+    if (player.y >= 320) yVelocity = jumpPower;
+  };
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") jump();
+  });
+  canvas.addEventListener("click", jump);
+  canvas.addEventListener("touchstart", jump);
+
+  const interval = setInterval(() => {
+    if (!miniGameRunning) return clearInterval(interval);
+    updateMiniGame(ctx, canvas);
+  }, 30);
+}
+
+function updateMiniGame(ctx, canvas) {
+  yVelocity += gravity;
+  player.y += yVelocity;
+  if (player.y > 320) player.y = 320;
+
+  // 장애물 생성 (바닥 또는 공중)
+  if (Math.random() < 0.03) {
+    const type = Math.random() < 0.6 ? "ground" : "air";
+    const y = type === "ground" ? 340 : 250;
+    const h = type === "ground" ? 20 : 20;
+    const w = 25 + Math.random() * 30;
+    obstacles.push({ x: 300, y, w, h, color: "#ef4444" });
+  }
+
+  // 이동 및 충돌 검사
+  obstacles.forEach((o) => (o.x -= 4));
+  obstacles = obstacles.filter((o) => o.x + o.w > 0);
+
+  for (const o of obstacles) {
+    if (
+      player.x < o.x + o.w &&
+      player.x + player.w > o.x &&
+      player.y < o.y + o.h &&
+      player.y + player.h > o.y
+    ) {
+      miniGameRunning = false;
+      endMiniGame();
+      return;
+    }
+  }
+
+  // 점수 및 화면 그리기
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#f1f1f1";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 땅
+  ctx.fillStyle = "#333";
+  ctx.fillRect(0, 360, canvas.width, 40);
+
+  // 캐릭터
+  ctx.fillStyle = player.color;
+  ctx.beginPath();
+  ctx.arc(player.x + 15, player.y + 15, 15, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 장애물
+  obstacles.forEach((o) => {
+    ctx.fillStyle = o.color;
+    ctx.fillRect(o.x, o.y, o.w, o.h);
+  });
+
+  // 점수
+  miniGameScore++;
+  ctx.fillStyle = "#000";
+  ctx.font = "16px Arial";
+  ctx.fillText(`Score: ${miniGameScore}`, 10, 25);
+}
+
+
+/* 레벨업 */
 function checkLevelUp() {
   let leveled = false;
   while (xp >= 100) { xp -= 100; level++; leveled = true; }
